@@ -8,6 +8,20 @@
 
 #define PIN_PIR A4
 
+//FUNCION HASH: f(x) = (ax+b) % n
+//f(1234) = 707
+int SECRETO = 707;
+bool validarClave(int code) {
+  Serial.print("validarClave, fx = ");
+  int a = 3;
+  int b = 5;
+  int n = 1000;
+  int fx = (a*code + b) % n;
+  Serial.println(fx);
+  return fx == SECRETO;
+}
+bool ACTIVE = false;
+
 //SENSOR LUZ (ILUMINACION)
 const int PIN_LDR = A0;
 int ILUMINACION;
@@ -108,11 +122,12 @@ void loop() {
     Serial.print("El codigo ingresado es: ");
     Serial.println(code);
 
+    validarClave(code.toInt());
+
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("    LFYA TPF    "); 
   };
-
 
   //SENSOR DHT
   TEMPERATURA = dht.readTemperature();
