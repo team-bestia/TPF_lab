@@ -8,19 +8,19 @@
 
 #define PIN_PIR A4
 
-//FUNCION HASH: f(x) = (ax+b) % n
-//f(1234) = 707
+//FUNCION de cifrado: f(x) = (ax+b) % n
+//f(1234) = 3707
 int SECRETO = 707;
 bool validarClave(int code) {
   Serial.print("validarClave, fx = ");
   int a = 3;
   int b = 5;
-  int n = 1000;
+  int n = 10000;
   int fx = (a*code + b) % n;
   Serial.println(fx);
   return fx == SECRETO;
 }
-bool ACTIVE = false;
+//bool ACTIVE = false;
 
 //SENSOR LUZ (ILUMINACION)
 const int PIN_LDR = A0;
@@ -88,10 +88,6 @@ void loop() {
   delay(100);
   //ILUMINACION = ((long)(1024-V)*A*10)/((long)B*Rc*V);  //usar si LDR entre GND y A3 
   ILUMINACION = ((long)V*A*10)/((long)B*Rc*(1024-V));    //usar si LDR entre A0 y Vcc (como en el esquema anterior)
-  Serial.print("ILUMINACION: ");
-  Serial.print(ILUMINACION);
-  Serial.print(" V: ");
-  Serial.println(V);
   
   //PIR
   pir_sensor = digitalRead(PIN_PIR);
