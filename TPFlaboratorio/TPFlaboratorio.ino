@@ -4,6 +4,8 @@
 #include <Keypad.h>
 #include <LiquidCrystal.h> 
 
+#include <math.h> 
+
 #define PIN_PIR A4
 
 //SENSOR LUZ (ILUMINACION)
@@ -62,12 +64,14 @@ void setup() {
   Serial.println("LED listo.");
   pinMode(PIN_PIR, INPUT); // PIN DEL SENSOR PIR COMO ENTRADA
   Serial.println("PIR listo.");
+  Serial.println("(*) para ingresar clave | finaliza con (#)");
+
 }
 
 void loop() {
   //ILUMINACION
   V = analogRead(PIN_LDR);
-  delay(1000);
+  delay(100);
   //ILUMINACION = ((long)(1024-V)*A*10)/((long)B*Rc*V);  //usar si LDR entre GND y A3 
   ILUMINACION = ((long)V*A*10)/((long)B*Rc*(1024-V));    //usar si LDR entre A0 y Vcc (como en el esquema anterior)
   Serial.print("ILUMINACION: ");
@@ -84,7 +88,31 @@ void loop() {
 
   //KEYPAD
   char key = keypad.getKey();
-  delay(100);
+  char number;
+  String code = "";
+  delay(1000);
+  if(key == '*'){
+    lcd.setCursor(0, 0);
+    lcd.print("INGRESE CLAVE"); 
+    lcd.setCursor(0, 1);
+
+    Serial.println("*** INGRESE CLAVE ***");
+    do {
+      number = keypad.getKey();
+      Serial.print(number);
+      if(number!= NO_KEY && number !='#') {
+        code += number;
+      }
+    } while (number != '#'); // != '#');
+    Serial.println(""); 
+    Serial.print("El codigo ingresado es: ");
+    Serial.println(code);
+
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("    LFYA TPF    "); 
+  };
+
 
   //SENSOR DHT
   TEMPERATURA = dht.readTemperature();
@@ -94,7 +122,7 @@ void loop() {
   Serial.print("oC - Humedad ");
   Serial.print(HUMEDAD);
   Serial.println("%");
-  delay(500);
+  delay(100);
 
   lcd.setCursor(0, 1);
   if (TEMPERATURA == 50) {
@@ -107,66 +135,6 @@ void loop() {
     lcd.print("     NORMAL     ");
   }
 
-  if(key){
-    switch (key) {
-      case '1':
-          Serial.println("> 1");
-        break;
-      
-      case '2':
-        Serial.println("> 2");
-
-        break;
-
-      case '3':
-        Serial.println("> 3");
-
-        break;
-
-      case '4':
-        Serial.println("> 4");
-
-        break;
-
-      case '5':
-        Serial.println("> 5");
-
-        break;
-
-      case '6':
-        Serial.println("> 6");
-
-        break;
-
-      case '7':
-        Serial.println("> 7");
-
-        break;
-
-      case '8':
-        Serial.println("> 8");
-
-        break;
-
-      case '9':
-        Serial.println("> 9");
-
-        break;
-
-      case '*':
-        tone(PIN_AUDIO,frecuencia); 
-        delay(500);
-        noTone(PIN_AUDIO);
-        break;
-
-      case '#':
-        analogWrite(PIN_LED, 255); //ENCIENDE
-        delay(500);
-        analogWrite(PIN_LED, 0); //APAGA
-        break;
-    }
-  };
-
   //Sonido
     //for(contador=0,frecuencia=220;contador<12;contador++) {
     //  frecuencia *= m; 
@@ -176,5 +144,11 @@ void loop() {
     //  delay(100);
   //}
 
+  // tone(PIN_AUDIO,frecuencia); 
+  // delay(500);
+  // noTone(PIN_AUDIO);
+  // analogWrite(PIN_LED, 255); //ENCIENDE
+  // delay(500);
+  // analogWrite(PIN_LED, 0); //APAGA
 
 }
