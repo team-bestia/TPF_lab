@@ -8,9 +8,9 @@
 
 #define PIN_PIR A4
 
-//FUNCION de cifrado: f(x) = (ax+b) % n
+//FUNCION HASH: f(x) = (ax+b) % n
 //f(1234) = 3707
-int SECRETO = 707;
+int SECRETO = 3707;
 bool validarClave(int code) {
   Serial.print("validarClave, fx = ");
   int a = 3;
@@ -20,7 +20,7 @@ bool validarClave(int code) {
   Serial.println(fx);
   return fx == SECRETO;
 }
-//bool ACTIVE = false;
+bool ACTIVE = false;
 
 //SENSOR LUZ (ILUMINACION)
 const int PIN_LDR = A0;
@@ -38,6 +38,7 @@ DHT dht(PIN_DHT, DHT11);	// dht(PIN, TYPE) - OBJETO
 
 //SENSOR PIR (MOVIMIENTO)
 int pir_sensor;
+bool ALARMA;
 
 //ACTUADOR LUZ
 int PIN_LED = 12;
@@ -91,9 +92,23 @@ void loop() {
   
   //PIR
   pir_sensor = digitalRead(PIN_PIR);
-  
-  if(pir_sensor == HIGH) {
-    Serial.print("movimiento");
+  if(pir_sensor==HIGH) { //si se detecta movimiento
+    
+    if(ACTIVE==1) { // si la Alarma de incendio esta activada, suena la sirena. y desactiva la alarma
+      Serial.println("movimiento con alarma ");
+	  
+      //Sonido
+      for(contador=0,frecuencia=2000;contador<3;contador++) {
+        tone(PIN_AUDIO,frecuencia); 
+        delay(600); // centisegundos
+        noTone(PIN_AUDIO);
+        delay(10);
+      }
+      ACTIVE=!ACTIVE;
+    }
+    else{
+      Serial.println("movimiento sin alarma");
+    }
   }
 
   //KEYPAD
@@ -118,7 +133,10 @@ void loop() {
     Serial.print("El codigo ingresado es: ");
     Serial.println(code);
 
-    validarClave(code.toInt());
+    if (validarClave(code.toInt())){
+      ACTIVE = true;
+      Serial.println("Clave OK. Alarma activada");
+    }
 
     lcd.clear();
     lcd.setCursor(0, 0);
@@ -137,7 +155,8 @@ void loop() {
 
   lcd.setCursor(0, 1);
   if (TEMPERATURA == 50) {
-    lcd.print("    INCENDIO    ");
+    lcd.print(" INCENDIO. ALARMA  ");
+    ACTIVE=true;                     //activar Alarma de incendio
   } else if (TEMPERATURA > 25) {
     lcd.print("   VENTILADOR   ");
   } else if (TEMPERATURA < 18) {
@@ -145,21 +164,5 @@ void loop() {
   } else {
     lcd.print("     NORMAL     ");
   }
-
-  //Sonido
-    //for(contador=0,frecuencia=220;contador<12;contador++) {
-    //  frecuencia *= m; 
-    //  tone(PIN_AUDIO,frecuencia); 
-    //  delay(500); // centisegundos
-    //  noTone(PIN_AUDIO);
-    //  delay(100);
-  //}
-
-  // tone(PIN_AUDIO,frecuencia); 
-  // delay(500);
-  // noTone(PIN_AUDIO);
-  // analogWrite(PIN_LED, 255); //ENCIENDE
-  // delay(500);
-  // analogWrite(PIN_LED, 0); //APAGA
 
 }
