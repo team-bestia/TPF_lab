@@ -20,14 +20,14 @@ bool validarClave(int code) {
   Serial.println(fx);
   return fx == SECRETO;
 }
-bool ACTIVE = false;
+bool ACTIVE = true;
 
 //SENSOR LUZ (ILUMINACION)
 const int PIN_LDR = A0;
 int ILUMINACION;
 const long A = 1000;     //Resistencia en oscuridad en KΩ
 const int B = 15;        //Resistencia a la luz (10 Lux) en KΩ
-const int Rc = 10;       //Resistencia calibracion en KΩ
+const float Rc = 10.17;       //Resistencia calibracion en KΩ
 int V;
 
 //SENSOR DTH (TEMPERATURA)
@@ -67,12 +67,13 @@ byte colPins[COLS] = {4,3,2};
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS); //OBJETO
 
 void setup() {
+
   //INICIALIZO
   Serial.begin(115200); //9600
   Serial.println("Inicializando...");
   lcd.begin(16, 2); //   void begin(uint8_t cols, uint8_t rows, uint8_t charsize = LCD_5x8DOTS);
   Serial.println("LCD listo.");
-  lcd.print("    LFYA TPF    "); 
+  lcd.print("    LFYAppp    "); 
   dht.begin(); 
   Serial.println("DHT listo.");
   pinMode(PIN_LED, OUTPUT); // PIN DEL SENSOR LED COMO SALIDA
@@ -92,21 +93,18 @@ void loop() {
   
   //PIR
   pir_sensor = digitalRead(PIN_PIR);
+  Serial.println(digitalRead(PIN_PIR));
   if(pir_sensor==HIGH) { //si se detecta movimiento
-    
-    if(ACTIVE==1) { // si la Alarma de incendio esta activada, suena la sirena. y desactiva la alarma
-      Serial.println("movimiento con alarma ");
-	  
-      //Sonido
-      for(contador=0,frecuencia=2000;contador<3;contador++) {
+    if(ACTIVE == 1) { // si la Alarma de incendio esta activada, suena la sirena. y desactiva la alarma
+      Serial.println("movimiento detectado - ");
+      for(contador=0,frecuencia=2000;contador<3;contador++) 
+      {
         tone(PIN_AUDIO,frecuencia); 
         delay(600); // centisegundos
-        noTone(PIN_AUDIO);
-        delay(10);
       }
-      ACTIVE=!ACTIVE;
     }
     else{
+      noTone(PIN_AUDIO);
       Serial.println("movimiento sin alarma");
     }
   }
@@ -140,8 +138,12 @@ void loop() {
 
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("    LFYA TPF    "); 
+    lcd.print("    LFYAroko    "); 
   };
+
+  Serial.print("ILuminacion: ");
+  Serial.print(ILUMINACION);
+  Serial.print(" lux - ");
 
   //SENSOR DHT
   TEMPERATURA = dht.readTemperature();
@@ -153,16 +155,30 @@ void loop() {
   Serial.println("%");
   delay(100);
 
+  if (ILUMINACION < 100)
+  {
+    analogWrite(PIN_LED, 255); //encendido 
+  }
+  else
+  {
+    analogWrite(PIN_LED, 0); //encendido
+  }
+
+
   lcd.setCursor(0, 1);
   if (TEMPERATURA == 50) {
     lcd.print(" INCENDIO. ALARMA  ");
+    tone(PIN_AUDIO,frecuencia); 
+    delay(600); // centisegundos
     ACTIVE=true;                     //activar Alarma de incendio
   } else if (TEMPERATURA > 25) {
     lcd.print("   VENTILADOR   ");
+    noTone(PIN_AUDIO); 
   } else if (TEMPERATURA < 18) {
     lcd.print(" CALEFACCION ON ");
   } else {
     lcd.print("     NORMAL     ");
   }
+
 
 }
